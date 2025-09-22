@@ -17,7 +17,9 @@ const UserSchema = new mongoose.Schema({
             type: String,
             enum: ['pending', 'approved', 'rejected'],
             default: 'pending'
-        }
+        },
+        rating:{type:Number,default:0},
+        totalRatings:{type:Number, default:0}
     }
     ,
     isAdmin:{type:Boolean, default:false}

@@ -145,7 +145,6 @@ router.get('/artisans', auth, async (req, res) => {
             role: 'artisan',
             'artisanInfo.status': 'approved'
         }).select('-password'); 
-
         res.json(artisans);
     } catch (err) {
         console.error(err.message);
@@ -222,6 +221,38 @@ router.put('/reject-artisan/:id',auth,admin,async(req,res)=>{
         console.error(err.message);
         res.status(500).send('Server Error');
     }
-})
+});
+// Rate an artisan
+router.post('/rate/:artisanId', auth, async (req, res) => {
+    const { rating } = req.body; // 1-5
+    const { artisanId } = req.params;
+
+    if (!rating || rating < 1 || rating > 5) {
+        return res.status(400).json({ msg: 'Rating must be between 1 and 5' });
+    }
+
+    try {
+        const artisan = await User.findById(artisanId);
+        if (!artisan || artisan.role !== 'artisan') {
+            return res.status(404).json({ msg: 'Artisan not found' });
+        }
+
+        // Update average rating
+        const total = artisan.artisanInfo.rating * artisan.artisanInfo.totalRatings;
+        const newTotalRatings = artisan.artisanInfo.totalRatings + 1;
+        const newRating = (total + rating) / newTotalRatings;
+
+        artisan.artisanInfo.rating = newRating;
+        artisan.artisanInfo.totalRatings = newTotalRatings;
+
+        await artisan.save();
+
+        res.json({ msg: 'Rating submitted', rating: newRating });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 export default router;
 
