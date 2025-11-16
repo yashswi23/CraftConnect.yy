@@ -115,6 +115,25 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ArtisanCard from './ArtisanCard.jsx';
 import OrderCard from './OrderCard.jsx';
+const getReadableLocation = async (lat, lon) => {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
+    );
+    const data = await res.json();
+    return (
+      data.address.city ||
+      data.address.town ||
+      data.address.village ||
+      data.address.state ||
+      ""
+    );
+  } catch (err) {
+    console.error("Reverse geocoding failed", err);
+    return "";
+  }
+};
+
 
 const CustomerDashboard = ({ user }) => {
   const navigate = useNavigate();
@@ -133,6 +152,30 @@ const CustomerDashboard = ({ user }) => {
   const [experience, setExperience] = useState('');
   const [rating, setRating] = useState('');
 const token = localStorage.getItem('craftconnect_token');
+
+  const handleDetectLocation = () => {
+  if (!navigator.geolocation) {
+    alert("Your browser does not support location access.");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const { latitude, longitude } = position.coords;
+
+      const loc = await getReadableLocation(latitude, longitude);
+      if (loc) {
+        setSelectedLocation(loc);
+      } else {
+        alert("Could not detect location.");
+      }
+    },
+    () => {
+      alert("Permission denied. Please allow location access.");
+    }
+  );
+};
+
   useEffect(() => {
     const fetchArtisans = async () => {
       try {
@@ -355,16 +398,25 @@ const token = localStorage.getItem('craftconnect_token');
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Location
-                </label>
-                <input
-                  type="text"
-                  placeholder="Enter location..."
-                  value={selectedLocation}
-                  onChange={(e) => setSelectedLocation(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center justify-between">
+  <span>Location</span>
+  <button
+    type="button"
+    onClick={handleDetectLocation}
+    className="text-xs text-blue-600 hover:underline"
+  >
+    Detect My Location 📍
+  </button>
+</label>
+
+<input
+  type="text"
+  placeholder="Enter location..."
+  value={selectedLocation}
+  onChange={(e) => setSelectedLocation(e.target.value)}
+  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+/>
+
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">

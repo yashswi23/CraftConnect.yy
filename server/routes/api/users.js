@@ -72,43 +72,11 @@ router.get('/me', auth, async (req, res) => {
     res.status(500).send('Server Error');
   }
 });
-// router.put('/become-artisan', auth, async (req, res) => {
-//     const { location, aadhaarNumber, serviceCategory } = req.body;
-//     if (!location || !aadhaarNumber || !serviceCategory) {
-//         return res.status(400).json({ msg: 'Please enter all fields' });
-//     }
-//     try {
-//         // 1. User ko uski ID se dhoondo (jo token se mili)
-//         const user = await User.findById(req.user.id);
-
-//         if (!user) {
-//             return res.status(404).json({ msg: 'User not found' });
-//         }
-        
-//         // 2. User ka role aur details update karo
-//         user.role = 'artisan';
-//         user.artisanInfo = {
-//             location,
-//             aadhaarNumber,
-//             serviceCategory,
-//             status: 'pending' // Application ka status 'pending' rakho
-//         };
-
-//         // 3. Updated user ko database mein save karo
-//         await user.save();
-
-//         res.json({ msg: 'Application submitted! Waiting for admin approval.' });
-
-//     } catch (err) {
-//         console.error(err.message);
-//         res.status(500).send('Server Error');
-//     }
-// });
-// CORRECTED CODE
 router.put('/become-artisan', auth, async (req, res) => {
-    const { location, aadhaarNumber, serviceCategory } = req.body;
-    if (!location || !aadhaarNumber || !serviceCategory) {
-        return res.status(400).json({ msg: 'Please enter all fields' });
+    const { location, serviceCategory, verifiedMobile, verificationType } = req.body;
+    
+    if (!location || !serviceCategory || !verifiedMobile) {
+        return res.status(400).json({ msg: 'Please enter all required fields and verify mobile number' });
     }
     try {
         const user = await User.findById(req.user.id);
@@ -125,8 +93,9 @@ router.put('/become-artisan', auth, async (req, res) => {
         user.role = 'artisan';
         user.artisanInfo = {
             location,
-            aadhaarNumber,
+            verifiedMobile,
             serviceCategory,
+            verificationType: verificationType || 'MOBILE_OTP',
             status: 'pending'
         };
 
@@ -165,8 +134,7 @@ router.get('/artisan-applications', auth, admin, async (req, res) => {
     try {
         const pendingApplications = await User.find({
             "artisanInfo.status": "pending",
-            "role": { $ne: 'admin' } // <-- ADD THIS LINE
-            // $ne means "not equal to". This ensures admins are not fetched.
+            "role": { $ne: 'admin' } 
         }).select('-password');
         res.json(pendingApplications);
     } catch (err) {
@@ -211,7 +179,7 @@ router.put('/approve-artisan/:id', auth, admin, async (req, res) => {
 router.put('/reject-artisan/:id',auth,admin,async(req,res)=>{
     try{
         const user = await User.findById(req.params.id);
-        if(!user || user.role !== 'artisan'){
+        if(!user || user.role !== 'artisan' || !user.artisanInfo){
             return res.status(404).json({msg: 'Artisan not Found'});
         }
         user.artisanInfo.status = 'rejected';
@@ -253,6 +221,22 @@ router.post('/rate/:artisanId', auth, async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
+router.put("/update-location", auth, async (req, res) => {
+  const { lat, lon, address } = req.body;
+
+  const user = await User.findByIdAndUpdate(
+    req.user.id,
+    { location: { lat, lon, address } },
+    { new: true }
+  );
+
+  res.json(user);
+});
 
 export default router;
+
+
+//new Admin Dashboard
+
+
 

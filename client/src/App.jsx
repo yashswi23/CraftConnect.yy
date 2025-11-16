@@ -17,10 +17,12 @@ import ServiceBookingForm from "./components/ServicesBookingForm.jsx";
 // Protected Route
 const ProtectedRoute = ({ children, adminOnly = false }) => {
   const token = localStorage.getItem("craftconnect_token");
-  const { user } = useContext(UserContext);
+  const { user,loading } = useContext(UserContext);
 
   if (!token) return <Navigate to="/login" />;
-  if (adminOnly && (!user || user.isAdmin !== true)) {
+  if(loading) return <p> Loading User...</p>
+  if(!user) return <Navigate to="/login"/>
+  if (adminOnly && user.isAdmin !== true){
     return <Navigate to="/dashboard" />;
   }
   return children;

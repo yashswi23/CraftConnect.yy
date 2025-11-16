@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { UserContext } from '../contexts/UserContext';
 
 const Register = () => {
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [isArtisan, setIsArtisan] = useState(false);
   const navigate = useNavigate();
+  const { setToken, loadUser } = useContext(UserContext);
+
   const { name, email, password } = formData;
 
   const onChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -14,10 +17,16 @@ const Register = () => {
     e.preventDefault();
     try {
       const res = await axios.post('http://localhost:5000/api/users/register', formData);
+
+      // Save token in context + localStorage
       localStorage.setItem('craftconnect_token', res.data.token);
-      
+      setToken(res.data.token);
+
+      // Load the user immediately
+      await loadUser();
+
       if (isArtisan) {
-        alert('Account created! Now, please fill your artisan details.');
+        alert('Account created! Now fill your artisan details.');
         navigate('/artisan-application');
       } else {
         alert('Registration successful!');
@@ -40,7 +49,7 @@ const Register = () => {
             value={name}
             onChange={onChange}
             required
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full px-4 py-2 border rounded-md"
           />
           <input
             type="email"
@@ -49,7 +58,7 @@ const Register = () => {
             value={email}
             onChange={onChange}
             required
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full px-4 py-2 border rounded-md"
           />
           <input
             type="password"
@@ -59,7 +68,7 @@ const Register = () => {
             onChange={onChange}
             minLength="6"
             required
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full px-4 py-2 border rounded-md"
           />
 
           <div className="flex items-center space-x-2">
@@ -68,14 +77,13 @@ const Register = () => {
               id="isArtisan"
               checked={isArtisan}
               onChange={(e) => setIsArtisan(e.target.checked)}
-              className="h-4 w-4 text-blue-600"
             />
-            <label htmlFor="isArtisan" className="text-gray-700">Want to become an Artisan?</label>
+            <label htmlFor="isArtisan">Want to become an Artisan?</label>
           </div>
 
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition"
+            className="w-full bg-blue-600 text-white py-2 rounded-md"
           >
             Register
           </button>
