@@ -72,7 +72,18 @@ const UserSchema = new mongoose.Schema({
         },
 
         rating:{type:Number,default:0},
-        totalRatings:{type:Number, default:0}
+        totalRatings:{type:Number, default:0},
+
+        // 📸 PROFILE MANAGEMENT FIELDS - NEW
+        bio: { type: String, maxlength: 500 },
+        skills: [{ type: String }],
+        experience: { type: String },
+        portfolio: [{
+            title: { type: String, required: true },
+            description: { type: String },
+            imageUrl: { type: String },
+            createdAt: { type: Date, default: Date.now }
+        }]
     },
 
     isAdmin: { type:Boolean, default:false }

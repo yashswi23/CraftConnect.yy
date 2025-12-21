@@ -141,6 +141,8 @@ const CustomerDashboard = ({ user }) => {
   const [orders, setOrders] = useState([]);
   const [loadingArtisans, setLoadingArtisans] = useState(true);
   const [loadingOrders, setLoadingOrders] = useState(true);
+  const [payments, setPayments] = useState([]);
+  const [wallet, setWallet] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
 
   // Filters
@@ -176,33 +178,56 @@ const token = localStorage.getItem('craftconnect_token');
   );
 };
 
+  const fetchArtisans = async () => {
+    try {
+      const config = { headers: { 'x-auth-token': token } };
+      const res = await axios.get('http://localhost:5000/api/users/artisans', config);
+      setArtisans(res.data);
+    } catch (error) {
+      console.error("Could not fetch artisans", error);
+    } finally {
+      setLoadingArtisans(false);
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      const config = { headers: { 'x-auth-token': token } };
+      const res = await axios.get('http://localhost:5000/api/bookings/my-orders', config);
+      setOrders(res.data);
+    } catch (error) {
+      console.error("Could not fetch orders", error);
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+  const fetchPayments = async () => {
+    try {
+      const config = { headers: { 'x-auth-token': token } };
+      const res = await axios.get('http://localhost:5000/api/payments/history', config);
+      setPayments(res.data || []);
+    } catch (error) {
+      console.error('Could not fetch payments', error);
+    }
+  };
+
+  const fetchWallet = async () => {
+    try {
+      const config = { headers: { 'x-auth-token': token } };
+      const res = await axios.get('http://localhost:5000/api/payments/wallet', config);
+      setWallet(res.data);
+    } catch (error) {
+      console.error('Could not fetch wallet', error);
+    }
+  };
+
   useEffect(() => {
-    const fetchArtisans = async () => {
-      try {
-        const config = { headers: { 'x-auth-token': token } };
-        const res = await axios.get('http://localhost:5000/api/users/artisans', config);
-        setArtisans(res.data);
-      } catch (error) {
-        console.error("Could not fetch artisans", error);
-      } finally {
-        setLoadingArtisans(false);
-      }
-    };
-
-    const fetchOrders = async () => {
-      try {
-        const config = { headers: { 'x-auth-token': token } };
-        const res = await axios.get('http://localhost:5000/api/bookings/my-orders', config);
-        setOrders(res.data);
-      } catch (error) {
-        console.error("Could not fetch orders", error);
-      } finally {
-        setLoadingOrders(false);
-      }
-    };
-
     fetchArtisans();
     fetchOrders();
+    fetchPayments();
+    fetchWallet();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleLogout = () => {
@@ -291,20 +316,20 @@ const token = localStorage.getItem('craftconnect_token');
   const hasActiveFilters = selectedCategory || searchText || selectedLocation || priceRange || availability || experience || rating;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 py-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
-        <header className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <header className="bg-white rounded-2xl shadow-lg p-8 mb-8 border border-gray-100">
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900 mb-1">
-                Hey {user.name}
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+                Welcome, {user.name}! 👋
               </h1>
-              <p className="text-gray-600">Find skilled artisans for your projects</p>
+              <p className="text-gray-600 text-lg">Find & book skilled artisans for your creative projects</p>
             </div>
             <button
               onClick={handleLogout}
-              className="px-4 py-2 text-sm text-red-600 border border-red-200 rounded-md hover:bg-red-50"
+              className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-all duration-200 shadow-md hover:shadow-lg font-semibold"
             >
               Sign out
             </button>
@@ -312,42 +337,78 @@ const token = localStorage.getItem('craftconnect_token');
         </header>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <div className="text-2xl font-bold text-gray-900">{orders.length}</div>
-            <div className="text-sm text-gray-600">Total orders</div>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <div className="text-2xl font-bold text-gray-900">{artisans.length}</div>
-            <div className="text-sm text-gray-600">Available artisans</div>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <div className="text-2xl font-bold text-gray-900">
-              {orders.filter(o => o.status === 'confirmed').length}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">Total Orders</p>
+                <p className="text-4xl font-bold text-gray-900 mt-2">{orders.length}</p>
+              </div>
+              <div className="text-4xl">📋</div>
             </div>
-            <div className="text-sm text-gray-600">Active bookings</div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <div className="text-2xl font-bold text-gray-900">
-              {new Set(artisans.map(a => a.artisanInfo?.serviceCategory)).size}
+          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">Available Artisans</p>
+                <p className="text-4xl font-bold text-gray-900 mt-2">{artisans.length}</p>
+              </div>
+              <div className="text-4xl">👨‍🎨</div>
             </div>
-            <div className="text-sm text-gray-600">Categories</div>
+          </div>
+          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">Active Bookings</p>
+                <p className="text-4xl font-bold text-gray-900 mt-2">
+                  {orders.filter(o => o.status === 'Confirmed' || o.status === 'Work In Progress').length}
+                </p>
+              </div>
+              <div className="text-4xl">⚡</div>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-orange-500 hover:shadow-lg transition-shadow">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">Categories</p>
+                <p className="text-4xl font-bold text-gray-900 mt-2">
+                  {new Set(artisans.map(a => a.artisanInfo?.serviceCategory)).size}
+                </p>
+              </div>
+              <div className="text-4xl">🏆</div>
+            </div>
           </div>
         </div>
 
         {/* Recent Orders */}
         {orders.length > 0 && (
-          <section className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Recent Orders</h2>
+          <section className="bg-white rounded-2xl shadow-lg p-8 mb-8 border border-gray-100">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">📦 Recent Orders</h2>
+              <span className="px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">{orders.length} total</span>
+            </div>
             {loadingOrders ? (
-              <div className="text-gray-500">Loading...</div>
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+                <p className="text-gray-600 mt-3">Loading your orders...</p>
+              </div>
             ) : (
               <div className="space-y-4">
                 {orders.slice(0, 3).map(order => (
-                  <OrderCard key={order._id} order={order}  token={token}  onRatingUpdate={handleRatingUpdate}/>
+                  <OrderCard
+                    key={order._id}
+                    order={order}
+                    token={token}
+                    onRatingUpdate={handleRatingUpdate}
+                    payments={payments}
+                    wallet={wallet}
+                    refreshPayments={fetchPayments}
+                    refreshWallet={fetchWallet}
+                    refreshOrders={fetchOrders}
+                  />
                 ))}
                 {orders.length > 3 && (
-                  <button className="text-blue-600 text-sm hover:text-blue-700">
+                  <button className="w-full mt-4 py-3 text-blue-600 font-semibold hover:text-blue-700 transition-colors">
                     View all {orders.length} orders →
                   </button>
                 )}
@@ -357,39 +418,39 @@ const token = localStorage.getItem('craftconnect_token');
         )}
 
         {/* Search and Filters */}
-        <section className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-medium text-gray-900">Find Artisans</h2>
+        <section className="bg-white rounded-2xl shadow-lg p-8 mb-8 border border-gray-100">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">🔍 Find Artisans</h2>
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="text-sm text-gray-600 hover:text-gray-900"
+              className={`px-4 py-2 rounded-lg font-semibold transition-all ${showFilters ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
             >
-              {showFilters ? 'Hide filters' : 'More filters'}
+              {showFilters ? '✓ Filters Active' : '+ More Filters'}
             </button>
           </div>
           
           {/* Main Search */}
-          <div className="mb-4">
+          <div className="mb-6">
             <input
               type="text"
-              placeholder="Search by artisan name..."
+              placeholder="🔎 Search by artisan name..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-5 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-lg"
             />
           </div>
 
           {/* Additional Filters */}
           {showFilters && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6 border-t-2 border-gray-100">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  🏆 Category
                 </label>
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">All categories</option>
                   {Array.from(new Set(artisans.map(a => a.artisanInfo?.serviceCategory).filter(Boolean))).map(cat => (
@@ -398,34 +459,32 @@ const token = localStorage.getItem('craftconnect_token');
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center justify-between">
-  <span>Location</span>
-  <button
-    type="button"
-    onClick={handleDetectLocation}
-    className="text-xs text-blue-600 hover:underline"
-  >
-    Detect My Location 📍
-  </button>
-</label>
-
-<input
-  type="text"
-  placeholder="Enter location..."
-  value={selectedLocation}
-  onChange={(e) => setSelectedLocation(e.target.value)}
-  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-/>
-
+                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center justify-between">
+                  <span>📍 Location</span>
+                  <button
+                    type="button"
+                    onClick={handleDetectLocation}
+                    className="text-xs text-blue-600 hover:underline font-normal"
+                  >
+                    Auto-detect
+                  </button>
+                </label>
+                <input
+                  type="text"
+                  placeholder="City or area..."
+                  value={selectedLocation}
+                  onChange={(e) => setSelectedLocation(e.target.value)}
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price Range
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  💰 Price Range
                 </label>
                 <select
                   value={priceRange}
                   onChange={(e) => setPriceRange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Any budget</option>
                   <option value="budget">Budget (Under ₹500/hr)</option>
@@ -434,13 +493,13 @@ const token = localStorage.getItem('craftconnect_token');
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Experience Level
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  🎯 Experience
                 </label>
                 <select
                   value={experience}
                   onChange={(e) => setExperience(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Any experience</option>
                   <option value="beginner">Beginner (0-2 years)</option>
@@ -449,13 +508,13 @@ const token = localStorage.getItem('craftconnect_token');
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Minimum Rating
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  ⭐ Rating
                 </label>
                 <select
                   value={rating}
                   onChange={(e) => setRating(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Any rating</option>
                   <option value="4">4+ Stars</option>
@@ -464,13 +523,13 @@ const token = localStorage.getItem('craftconnect_token');
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Availability
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  📅 Availability
                 </label>
                 <select
                   value={availability}
                   onChange={(e) => setAvailability(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Any availability</option>
                   <option value="available">Available now</option>
@@ -482,77 +541,47 @@ const token = localStorage.getItem('craftconnect_token');
 
           {/* Active Filters */}
           {hasActiveFilters && (
-            <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200 flex-wrap">
-              <span className="text-sm text-gray-600">Filters:</span>
+            <div className="flex items-center gap-3 mt-6 pt-6 border-t-2 border-gray-100 flex-wrap">
+              <span className="text-sm font-bold text-gray-700">Applied:</span>
               {selectedCategory && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800 font-semibold">
                   {selectedCategory}
-                  <button
-                    onClick={() => setSelectedCategory('')}
-                    className="ml-1 hover:text-blue-900"
-                  >
-                    ×
-                  </button>
+                  <button onClick={() => setSelectedCategory('')} className="ml-2 hover:text-blue-900">✕</button>
                 </span>
               )}
               {selectedLocation && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800 font-semibold">
                   📍 {selectedLocation}
-                  <button
-                    onClick={() => setSelectedLocation('')}
-                    className="ml-1 hover:text-green-900"
-                  >
-                    ×
-                  </button>
+                  <button onClick={() => setSelectedLocation('')} className="ml-2 hover:text-green-900">✕</button>
                 </span>
               )}
               {priceRange && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800 font-semibold">
                   💰 {priceRange}
-                  <button
-                    onClick={() => setPriceRange('')}
-                    className="ml-1 hover:text-purple-900"
-                  >
-                    ×
-                  </button>
+                  <button onClick={() => setPriceRange('')} className="ml-2 hover:text-purple-900">✕</button>
                 </span>
               )}
               {experience && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-yellow-100 text-yellow-800 font-semibold">
                   🎯 {experience}
-                  <button
-                    onClick={() => setExperience('')}
-                    className="ml-1 hover:text-yellow-900"
-                  >
-                    ×
-                  </button>
+                  <button onClick={() => setExperience('')} className="ml-2 hover:text-yellow-900">✕</button>
                 </span>
               )}
               {rating && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-800">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-100 text-orange-800 font-semibold">
                   ⭐ {rating}+ stars
-                  <button
-                    onClick={() => setRating('')}
-                    className="ml-1 hover:text-orange-900"
-                  >
-                    ×
-                  </button>
+                  <button onClick={() => setRating('')} className="ml-2 hover:text-orange-900">✕</button>
                 </span>
               )}
               {availability && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-indigo-100 text-indigo-800">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-indigo-100 text-indigo-800 font-semibold">
                   📅 {availability}
-                  <button
-                    onClick={() => setAvailability('')}
-                    className="ml-1 hover:text-indigo-900"
-                  >
-                    ×
-                  </button>
+                  <button onClick={() => setAvailability('')} className="ml-2 hover:text-indigo-900">✕</button>
                 </span>
               )}
               <button
                 onClick={clearFilters}
-                className="text-xs text-gray-500 hover:text-gray-700 ml-2"
+                className="text-sm text-red-600 hover:text-red-700 font-semibold ml-2"
               >
                 Clear all
               </button>
@@ -561,25 +590,33 @@ const token = localStorage.getItem('craftconnect_token');
         </section>
 
         {/* Artisans List */}
-        <section className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-medium text-gray-900">
-              {hasActiveFilters ? 'Search Results' : 'All Artisans'}
+        <section className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-bold text-gray-900">
+              {hasActiveFilters ? '🔎 Search Results' : '✨ All Artisans'}
             </h2>
-            <span className="text-sm text-gray-500">
-              {filteredArtisans.length} artisan{filteredArtisans.length !== 1 ? 's' : ''}
+            <span className="px-4 py-2 bg-indigo-100 text-indigo-800 rounded-full text-sm font-bold">
+              {filteredArtisans.length} found
             </span>
           </div>
 
           {loadingArtisans ? (
-            <div className="text-center py-8 text-gray-500">Loading artisans...</div>
+            <div className="text-center py-16">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <p className="text-gray-600 mt-4 text-lg">Loading artisans...</p>
+            </div>
           ) : Object.keys(groupedFilteredArtisans).length > 0 ? (
             Object.keys(groupedFilteredArtisans).map(category => (
-              <div key={category} className="mb-8">
-                <h3 className="text-md font-medium text-gray-800 mb-3 border-b border-gray-200 pb-1">
-                  {category} ({groupedFilteredArtisans[category].length})
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div key={category} className="mb-10">
+                <div className="flex items-center gap-3 mb-6">
+                  <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    {category}
+                  </h3>
+                  <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm font-semibold">
+                    {groupedFilteredArtisans[category].length}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {groupedFilteredArtisans[category].map(artisan => (
                     <ArtisanCard key={artisan._id} artisan={artisan} />
                   ))}
@@ -587,16 +624,16 @@ const token = localStorage.getItem('craftconnect_token');
               </div>
             ))
           ) : (
-            <div className="text-center py-8">
-              <div className="text-gray-500 mb-2">
-                {hasActiveFilters ? 'No artisans match your search' : 'No artisans found'}
-              </div>
+            <div className="text-center py-16">
+              <div className="text-6xl mb-4">🔍</div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">No artisans found</h3>
+              <p className="text-gray-600 mb-6">Try adjusting your filters to find what you're looking for</p>
               {hasActiveFilters && (
                 <button
                   onClick={clearFilters}
-                  className="text-blue-600 text-sm hover:text-blue-700"
+                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
                 >
-                  Clear filters to see all artisans
+                  Clear all filters
                 </button>
               )}
             </div>

@@ -14,6 +14,7 @@ const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
+
 // Validate Indian mobile number
 const isValidIndianMobile = (phone) => {
   const indianMobileRegex = /^[6-9]\d{9}$/;

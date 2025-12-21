@@ -10,6 +10,7 @@ import Login from "./components/Login.jsx";
 import Dashboard from "./components/Dashboard.jsx";
 import ArtisanApplication from "./components/ArtisanApplication.jsx";
 import ArtisanProfile from "./components/ArtisanProfile.jsx";
+import ArtisanPortfolioManager from "./components/ArtisanPortfolioManager.jsx";
 import AdminDashboard from "./components/AdminDashBoard.jsx";
 import { UserContext } from "./contexts/UserContext.jsx";
 import ServiceBookingForm from "./components/ServicesBookingForm.jsx";
@@ -76,6 +77,14 @@ function App() {
           element={
             <ProtectedRoute>
               <ServiceBookingForm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/portfolio-manager"
+          element={
+            <ProtectedRoute>
+              <ArtisanPortfolioManager />
             </ProtectedRoute>
           }
         />

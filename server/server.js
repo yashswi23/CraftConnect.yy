@@ -7,6 +7,8 @@ import userRoutes from './routes/api/users.js';
 import bookingRoutes from './routes/api/bookings.js';
 import aadharRoute from "./routes/api/aadhar.js";
 import otpRoutes from './routes/api/otp.js';
+import portfolioRoutes from './routes/api/portfolio.js';
+import paymentRoutes from './routes/api/payments.js';
 dotenv.config();
 connectDB();
 const app = express();
@@ -20,6 +22,9 @@ app.use('/api/users', userRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use("/api/aadhaar", aadharRoute);
 app.use('/api/otp', otpRoutes);
+app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/uploads', express.static('uploads'));
 const PORT = 5000;
 app.listen(PORT, () => {
   console.log(`Server port ${PORT} par shuru ho gaya hai.`);
