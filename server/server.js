@@ -25,9 +25,11 @@ app.use('/api/otp', otpRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/uploads', express.static('uploads'));
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
   console.log(`Server port ${PORT} par shuru ho gaya hai.`);
 });
+
 
 

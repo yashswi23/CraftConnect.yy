@@ -3,8 +3,7 @@ import mongoose from 'mongoose';
 const otpSchema = new mongoose.Schema({
   phoneNumber: {
     type: String,
-    required: true,
-    index: true
+    required: true
   },
   otp: {
     type: String,
@@ -27,15 +26,14 @@ const otpSchema = new mongoose.Schema({
   expiresAt: {
     type: Date,
     required: true,
-    index: { expireAfterSeconds: 0 }
+    index: { expireAfterSeconds: 0 } // ✅ TTL index (bilkul sahi)
   }
 }, {
   timestamps: true
 });
 
-// Compound index for efficient queries
+// ✅ Compound index (correct place)
 otpSchema.index({ phoneNumber: 1, purpose: 1 });
 
 const OTP = mongoose.model('OTP', otpSchema);
-
 export default OTP;
